@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_footer.dart';
+import '../src/services/api.dart';
 
 class AIPage extends StatefulWidget {
   const AIPage({super.key});
@@ -9,13 +10,15 @@ class AIPage extends StatefulWidget {
   State<AIPage> createState() => _AIPageState();
 }
 
-class _AIPageState extends State<AIPage> {
+class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
   final List<Map<String, String>> _messages = [
-    {'sender': 'AI', 'text': 'Hello! How can I help you today?'}
+    {'sender': 'AI', 'text': 'Hello! How can I help you today?'},
   ];
+  bool _isZulu = false; // Language toggle state
 
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  bool _isSending = false;
 
   Widget _buildMessageBubble(Map<String, String> message) {
     bool isUser = message['sender'] == 'User';
@@ -25,35 +28,34 @@ class _AIPageState extends State<AIPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-        constraints:
-            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.7,
+        ),
         decoration: BoxDecoration(
           color: isUser ? Colors.blue[300] : Colors.grey[300],
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
-            bottomLeft: isUser ? const Radius.circular(16) : const Radius.circular(0),
-            bottomRight: isUser ? const Radius.circular(0) : const Radius.circular(16),
+            bottomLeft: isUser
+                ? const Radius.circular(16)
+                : const Radius.circular(0),
+            bottomRight: isUser
+                ? const Radius.circular(0)
+                : const Radius.circular(16),
           ),
         ),
         child: Text(
           message['text'] ?? '',
           style: TextStyle(
-              color: isUser ? Colors.white : Colors.black87, fontSize: 16),
+            color: isUser ? Colors.white : Colors.black87,
+            fontSize: 16,
+          ),
         ),
       ),
     );
   }
 
-  void _sendMessage() {
-    String input = _controller.text.trim();
-    if (input.isEmpty) return;
-
-    setState(() {
-      _messages.add({'sender': 'User', 'text': input});
-      _controller.clear();
-    });
-
+  void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
@@ -61,20 +63,45 @@ class _AIPageState extends State<AIPage> {
         curve: Curves.easeOut,
       );
     });
+  }
 
-    Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        _messages.add({'sender': 'AI', 'text': "AI response to: $input"});
-      });
+  void _sendMessage() async {
+    String input = _controller.text.trim();
+    if (input.isEmpty || _isSending) return;
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      });
+    setState(() {
+      _messages.add({'sender': 'User', 'text': input});
+      _controller.clear();
+      _isSending = true;
     });
+
+    _scrollToBottom();
+
+    try {
+      final response = await Api.post('/chat', {
+        'message': input,
+        'language': _isZulu ? 'zulu' : 'english',
+      });
+      final aiResponse =
+          response['reply'] ?? 'Sorry, I could not process that request.';
+
+      setState(() {
+        _messages.add({'sender': 'AI', 'text': aiResponse});
+        _isSending = false;
+      });
+
+      _scrollToBottom();
+    } catch (e) {
+      setState(() {
+        _messages.add({
+          'sender': 'AI',
+          'text': 'Sorry, I encountered an error. Please try again.',
+        });
+        _isSending = false;
+      });
+
+      _scrollToBottom();
+    }
   }
 
   @override
@@ -86,6 +113,59 @@ class _AIPageState extends State<AIPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 30),
+
+            // Language toggle
+            Center(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'English',
+                      style: TextStyle(
+                        color: _isZulu ? Colors.grey : Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Switch(
+                      value: _isZulu,
+                      onChanged: (value) {
+                        setState(() {
+                          _isZulu = value;
+                          // Update initial message based on language
+                          if (_messages.isNotEmpty &&
+                              _messages[0]['sender'] == 'AI') {
+                            _messages[0] = {
+                              'sender': 'AI',
+                              'text': _isZulu
+                                  ? 'Sawubona! Ngingakusiza kanjani namuhla?'
+                                  : 'Hello! How can I help you today?',
+                            };
+                          }
+                        });
+                      },
+                      activeColor: Colors.blue,
+                    ),
+                    Text(
+                      'isiZulu',
+                      style: TextStyle(
+                        color: _isZulu ? Colors.blue : Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
 
             // Info section
             LayoutBuilder(
@@ -121,7 +201,9 @@ class _AIPageState extends State<AIPage> {
                               const Text(
                                 "Need help or have questions?",
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 22),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                ),
                               ),
                               const SizedBox(height: 10),
                               const Text(
@@ -147,8 +229,9 @@ class _AIPageState extends State<AIPage> {
                                     Text(
                                       "Need help or have questions?",
                                       style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 24),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 24,
+                                      ),
                                     ),
                                     SizedBox(height: 10),
                                     Text(
@@ -225,11 +308,14 @@ class _AIPageState extends State<AIPage> {
                               filled: true,
                               fillColor: Colors.white,
                               contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide:
-                                    const BorderSide(color: Colors.grey),
+                                borderSide: const BorderSide(
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                             onSubmitted: (_) => _sendMessage(),
@@ -237,17 +323,30 @@ class _AIPageState extends State<AIPage> {
                         ),
                         const SizedBox(width: 10),
                         ElevatedButton(
-                          onPressed: _sendMessage,
+                          onPressed: _isSending ? null : _sendMessage,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue.shade300,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 16),
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text("Send"),
+                          child: _isSending
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : const Text("Send"),
                         ),
                       ],
                     ),

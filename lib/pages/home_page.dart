@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart'; 
+import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_footer.dart';
 
@@ -14,42 +14,42 @@ class HomePage extends StatelessWidget {
       appBar: const CustomAppBar(),
       body: Stack(
         children: [
-        Positioned(
-          top: kToolbarHeight + 20,
-              left: -150,
-              width: 750,
-              height: 500,
-              child: Opacity(
-                  opacity: 0.4, 
-                    child: Transform(
-                      alignment: Alignment.center,
-                        transform: Matrix4.rotationZ(1.5708), // 90 degrees in radians
-                        child: SvgPicture.asset(
-                          'assets/images/image1.svg',
-                          fit: BoxFit.contain,
-                  ),
-                  ),
-                ),  
-        ), 
+          Positioned(
+            top: kToolbarHeight + 20,
+            left: -150,
+            width: 750,
+            height: 500,
+            child: Opacity(
+              opacity: 0.4,
+              child: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.rotationZ(1.5708), // 90 degrees in radians
+                child: SvgPicture.asset(
+                  'assets/images/image1.svg',
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
 
-    // Second SVG positioned similarly but offset slightly differently
-        Positioned(
-          top: kToolbarHeight + 20,
-              left: -150,
-              width: 730,
-              height: 500,
-              child: Opacity(
-                  opacity: 0.4, 
-                    child: Transform(
-                      alignment: Alignment.center,
-                        transform: Matrix4.rotationZ(1.5708), // 90 degrees in radians
-                        child: SvgPicture.asset(
-                          'assets/images/image1.svg',
-                          fit: BoxFit.contain,
-                  ),
-                  ),
-                ),  
-        ),                   
+          // Second SVG positioned similarly but offset slightly differently
+          Positioned(
+            top: kToolbarHeight + 20,
+            left: -150,
+            width: 730,
+            height: 500,
+            child: Opacity(
+              opacity: 0.4,
+              child: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.rotationZ(1.5708), // 90 degrees in radians
+                child: SvgPicture.asset(
+                  'assets/images/image1.svg',
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
 
           // Your original content scroll view
           SingleChildScrollView(
@@ -57,7 +57,7 @@ class HomePage extends StatelessWidget {
               children: [
                 SizedBox(height: 30),
 
-                //slogan 
+                //slogan
                 Container(
                   color: Colors.grey[200],
                   padding: EdgeInsets.all(16),
@@ -80,8 +80,13 @@ class HomePage extends StatelessWidget {
                         child: Align(
                           alignment: Alignment.center,
                           child: Text(
-                            'This is our brand slogan.\nThis is what we stand for.',
-                            style: TextStyle(fontSize: 18),
+                            'Empowering Educators, Engaging Students\nYour All-in-One Classroom Management Solution',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue[800],
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),
@@ -93,7 +98,9 @@ class HomePage extends StatelessWidget {
 
                 //about product card
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: screenWidth > 700 ? 60 : 20),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth > 700 ? 60 : 20,
+                  ),
                   child: Container(
                     padding: EdgeInsets.all(30),
                     decoration: BoxDecoration(
@@ -111,7 +118,10 @@ class HomePage extends StatelessWidget {
                             alignment: Alignment.center,
                             child: Text(
                               'About Our\nProduct',
-                              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -129,10 +139,7 @@ class HomePage extends StatelessWidget {
                             padding: const EdgeInsets.all(30),
                             child: SingleChildScrollView(
                               child: Text(
-                                "ClassBuddy is your all-in-one digital assistant designed to make teaching easier, faster, and more organized. "
-                                "Whether you're managing attendance, tracking student progress, or planning lessons, ClassBuddy streamlines daily classroom tasks "
-                                "so teachers can focus on what matters most: teaching. Built for educators in K–12 and beyond, it's intuitive, secure, and customizable "
-                                "to fit your unique classroom needs.\n\n"
+                                "Fundisa is your multilingual digital learning assistant, designed to break down language barriers and make education more inclusive, accessible, and effective. Whether you're teaching in urban schools with strong connectivity or rural areas with limited access, Fundisa streamlines classroom tasks with AI-powered translation, offline-first learning, and engaging gamified tools that keep students motivated. From managing attendance and tracking progress to delivering lessons in all 11 official South African languages, Fundisa empowers teachers to focus on teaching while students learn in the language they understand best. Built for learners in South Africa and beyond, it's intuitive, secure, and adaptable to fit diverse classroom needs across different contexts.\n\n"
                                 "Key Features:\n\n"
                                 "* Smart Attendance Tracking: Mark attendance with one tap and generate reports instantly.\n"
                                 "* Gradebook & Progress Reports: Log assignments and automatically calculate grades.\n"
@@ -154,7 +161,9 @@ class HomePage extends StatelessWidget {
                 SizedBox(height: 30),
 
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: screenWidth > 900 ? 60 : 20),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth > 900 ? 60 : 20,
+                  ),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -162,11 +171,15 @@ class HomePage extends StatelessWidget {
                       children: [
                         //card 1
                         SizedBox(
-                          width: screenWidth > 900 ? (screenWidth - 320) / 3 : 300,
+                          width: screenWidth > 900
+                              ? (screenWidth - 320) / 3
+                              : 300,
                           child: Card(
                             color: const Color.fromARGB(160, 142, 181, 194),
                             elevation: 4,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                             child: Padding(
                               padding: EdgeInsets.all(16),
                               child: Column(
@@ -174,7 +187,10 @@ class HomePage extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Speak to a member',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
                                   ),
                                   SizedBox(height: 10),
                                   Text(
@@ -184,17 +200,31 @@ class HomePage extends StatelessWidget {
                                   SizedBox(height: 40),
 
                                   Padding(
-                                    padding: EdgeInsets.only(left: 0, right: 16),
+                                    padding: EdgeInsets.only(
+                                      left: 0,
+                                      right: 16,
+                                    ),
                                     child: SizedBox(
                                       width: double.infinity,
                                       height: 35,
                                       child: ElevatedButton(
                                         onPressed: () {
-                                          Navigator.pushReplacementNamed(context, '/contact');
+                                          Navigator.pushReplacementNamed(
+                                            context,
+                                            '/contact',
+                                          );
                                         },
                                         style: ElevatedButton.styleFrom(
-                                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                                          backgroundColor: const Color.fromARGB(250, 61, 95, 106),
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 12,
+                                            horizontal: 20,
+                                          ),
+                                          backgroundColor: const Color.fromARGB(
+                                            250,
+                                            61,
+                                            95,
+                                            106,
+                                          ),
                                           alignment: Alignment.centerLeft,
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.only(
@@ -203,7 +233,10 @@ class HomePage extends StatelessWidget {
                                             ),
                                           ),
                                         ),
-                                        child: Text('CONTACT A MEMBER', style: TextStyle(color: Colors.black)),
+                                        child: Text(
+                                          'CONTACT A MEMBER',
+                                          style: TextStyle(color: Colors.black),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -218,11 +251,15 @@ class HomePage extends StatelessWidget {
 
                         //card 2
                         SizedBox(
-                          width: screenWidth > 900 ? (screenWidth - 320) / 3 : 300,
+                          width: screenWidth > 900
+                              ? (screenWidth - 320) / 3
+                              : 300,
                           child: Card(
                             color: const Color.fromARGB(160, 142, 181, 194),
                             elevation: 4,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                             child: Padding(
                               padding: EdgeInsets.all(16),
                               child: Column(
@@ -230,7 +267,10 @@ class HomePage extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Watch a Demo',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
                                   ),
                                   SizedBox(height: 10),
                                   Text(
@@ -244,8 +284,16 @@ class HomePage extends StatelessWidget {
                                     child: ElevatedButton(
                                       onPressed: () {},
                                       style: ElevatedButton.styleFrom(
-                                        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                                        backgroundColor: const Color.fromARGB(250, 61, 95, 106),
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 12,
+                                          horizontal: 20,
+                                        ),
+                                        backgroundColor: const Color.fromARGB(
+                                          250,
+                                          61,
+                                          95,
+                                          106,
+                                        ),
                                         alignment: Alignment.centerLeft,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.only(
@@ -254,7 +302,10 @@ class HomePage extends StatelessWidget {
                                           ),
                                         ),
                                       ),
-                                      child: Text('WATCH A DEMO', style: TextStyle(color: Colors.black)),
+                                      child: Text(
+                                        'WATCH A DEMO',
+                                        style: TextStyle(color: Colors.black),
+                                      ),
                                     ),
                                   ),
                                   SizedBox(height: 40),
@@ -268,11 +319,15 @@ class HomePage extends StatelessWidget {
 
                         //card 3
                         SizedBox(
-                          width: screenWidth > 900 ? (screenWidth - 320) / 3 : 300,
+                          width: screenWidth > 900
+                              ? (screenWidth - 320) / 3
+                              : 300,
                           child: Card(
                             color: const Color.fromARGB(160, 142, 181, 194),
                             elevation: 4,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                             child: Padding(
                               padding: EdgeInsets.all(16),
                               child: Column(
@@ -280,7 +335,10 @@ class HomePage extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Get Started',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
                                   ),
                                   SizedBox(height: 10),
                                   Text(
@@ -293,11 +351,22 @@ class HomePage extends StatelessWidget {
                                     height: 35,
                                     child: ElevatedButton(
                                       onPressed: () {
-                                        Navigator.pushReplacementNamed(context, '/pricingpage');
+                                        Navigator.pushReplacementNamed(
+                                          context,
+                                          '/pricingpage',
+                                        );
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                                        backgroundColor: const Color.fromARGB(250, 61, 95, 106),
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 12,
+                                          horizontal: 20,
+                                        ),
+                                        backgroundColor: const Color.fromARGB(
+                                          250,
+                                          61,
+                                          95,
+                                          106,
+                                        ),
                                         alignment: Alignment.centerLeft,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.only(
@@ -306,7 +375,10 @@ class HomePage extends StatelessWidget {
                                           ),
                                         ),
                                       ),
-                                      child: Text('CHECK PRICING', style: TextStyle(color: Colors.black)),
+                                      child: Text(
+                                        'CHECK PRICING',
+                                        style: TextStyle(color: Colors.black),
+                                      ),
                                     ),
                                   ),
                                   SizedBox(height: 40),
@@ -322,7 +394,7 @@ class HomePage extends StatelessWidget {
 
                 SizedBox(height: 30),
 
-                //footer 
+                //footer
                 CustomFooter(),
               ],
             ),

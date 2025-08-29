@@ -52,7 +52,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         TextButton(
           onPressed: () {
-            Navigator.pushReplacementNamed(context, '/Login_page');
+            Navigator.pushReplacementNamed(context, '/login');
           },
           child: Text('Login', style: TextStyle(color: Colors.black)),
         ),
@@ -61,7 +61,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       // ✅ Set different background color based on route
       backgroundColor: isOnHomePage
           ? Color(0xFFE0F7FA) // Light teal for homepage
-          : Color.fromARGB(255, 255, 255, 255),// Light grey for other pages
+          : Color.fromARGB(255, 255, 255, 255), // Light grey for other pages
 
       elevation: 4,
     );
