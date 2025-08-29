@@ -319,4 +319,4 @@ server.listen(PORT, async () => {
   console.log(`✅ Server running on port ${PORT}`);
   // Test Supabase connection when server starts
   await testSupabaseConnection();
-z});
+});
