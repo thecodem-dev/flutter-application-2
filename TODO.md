@@ -1,20 +1,13 @@
-# Home Page Improvements & GitHub Setup TODO
+# CORS Configuration Update
 
-## Tasks to Complete:
-- [ ] Test home page responsiveness across different screen sizes
-- [ ] Replace generic slogan with meaningful educational platform messaging
-- [ ] Fix SVG positioning issues (negative left values)
-- [ ] Verify SVG assets (check for duplicates)
-- 
-- [ ] Check if GitHub CLI is installed
-- [ ] Set up Git repository with proper .gitignore
-- [ ] Create initial commit
+## Task: Update backend CORS configuration to allow specific domains
 
-## Current Focus:
-Testing responsiveness and updating slogan as priority
+### Steps:
+1. [ ] Update `backend/server.js` to configure CORS with specific origin settings
+   - Allow: `https://fundisaa.netlify.app` (Netlify deployment)
+   - Allow: `https://flutter-application-2-1.onrender.com` (Current Render deployment)
+   - Allow: `http://localhost:3000` (Local development)
+   - Configure proper CORS options
 
-## Implementation Notes:
-- Use Flutter's responsive design principles
-- Create meaningful educational platform messaging
-- Ensure proper contrast ratios for accessibility
-- Set up proper Git structure for both Flutter and Node.js backend
+### Completed:
+- [ ] Step 1: CORS configuration updated

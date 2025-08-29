@@ -12,11 +12,23 @@ import "dotenv/config";
 // -------------------- Setup --------------------
 const app = express();
 const server = http.createServer(app);
+
+// Configure CORS with specific allowed origins
+const corsOptions = {
+  origin: [
+    'https://fundisaa.netlify.app', // Netlify deployment
+    'https://flutter-application-2-1.onrender.com', // Current Render deployment
+    'http://localhost:3000' // Local development
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] },
+  cors: corsOptions
 });
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static("public"));
 
@@ -301,10 +313,10 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 3000;
 
 if (!process.env.HUGGING_FACE_API_KEY) console.warn("⚠️ HUGGING_FACE_API_KEY missing");
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) console.warn("⚠️ Supabase credentials missing");
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_URL) console.warn("⚠️ Supabase credentials missing");
 
 server.listen(PORT, async () => {
   console.log(`✅ Server running on port ${PORT}`);
   // Test Supabase connection when server starts
   await testSupabaseConnection();
-});
+z});

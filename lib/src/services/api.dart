@@ -5,7 +5,7 @@ import 'session.dart';
 class Api {
   static const base = String.fromEnvironment(
     'API_BASE',
-    defaultValue: 'http://localhost:5000',
+    defaultValue: 'https://flutter-application-2-1.onrender.com',
   );
 
   static Future<Map<String, dynamic>> post(String path, Map body) async {
