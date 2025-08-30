@@ -383,7 +383,7 @@ io.on("connection", (socket) => {
 });
 
 // -------------------- Server --------------------
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 if (!process.env.HUGGING_FACE_API_KEY) console.warn("⚠️ HUGGING_FACE_API_KEY missing");
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_URL) console.warn("⚠️ Supabase credentials missing");
