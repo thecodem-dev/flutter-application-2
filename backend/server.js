@@ -179,6 +179,16 @@ app.post("/files/upload", upload.array("files"), async (req, res) => {
       fileIds.push(data[0].id);
       
       // Emit socket event for real-time update
+      const moduleData = {
+        id: data[0].id,
+        title: file.originalname.replace(/\.[^/.]+$/, ""),
+        description: `Module content from ${file.originalname}`,
+        createdAt: new Date().toISOString(),
+        fileIds: [data[0].id],
+        uploader: uploader
+      };
+      
+      io.emit('module:new', moduleData);
       io.emit('file:new', {
         id: data[0].id,
         filename: filename,
@@ -206,6 +216,55 @@ app.get("/files", async (req, res) => {
   }
 });
 
+// -------------------- Modules (same as files for now) --------------------
+app.get("/modules", async (req, res) => {
+  try {
+    const { data, error } = await supabase.from("files").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    
+    // Transform files to module format
+    const modules = data.map(file => ({
+      id: file.id,
+      title: file.original_name.replace(/\.[^/.]+$/, ""), // Remove file extension
+      description: `Module content from ${file.original_name}`,
+      createdAt: file.created_at,
+      fileIds: [file.id],
+      uploader: file.uploader
+    }));
+    
+    res.json(modules);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch modules" });
+  }
+});
+
+// -------------------- Text Translation --------------------
+app.post("/translate", async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ error: "Text required" });
+
+    let translatedText;
+    try {
+      // Try Hugging Face API first
+      const prompt = `Translate the following English text to isiZulu: "${text}"`;
+      translatedText = await callHuggingFaceAPI("tiiuae/falcon-7b-instruct", prompt);
+    } catch (err) {
+      // Fallback to simple response
+      translatedText = `[isiZulu translation of: ${text}] - Translation service temporarily unavailable`;
+    }
+
+    res.json({ 
+      success: true,
+      originalText: text,
+      translatedText: translatedText 
+    });
+  } catch (err) {
+    console.error('Translation error:', err);
+    res.status(500).json({ error: "Translation failed", details: err.message });
+  }
+});
+
 app.get("/files/download/:filename", async (req, res) => {
   try {
     const { data, error } = await supabase.storage.from("files").createSignedUrl(req.params.filename, 60 * 5);
@@ -229,20 +288,34 @@ app.post("/translate-pdf/:id", async (req, res) => {
       return res.status(404).json({ error: "File not found" });
     }
 
-    // Download file from storage
-    const { data: fileBuffer, error: downloadError } = await supabase.storage
-      .from("files")
-      .download(fileData.filename);
-    
-    if (downloadError) throw downloadError;
+    let translatedText;
+    let originalText = `Content from ${fileData.original_name}`;
 
-    const buffer = Buffer.from(await fileBuffer.arrayBuffer());
-    const pdfData = await pdfParse(buffer);
+    if (fileData.content_type === 'application/pdf') {
+      try {
+        // Download file from storage
+        const { data: fileBuffer, error: downloadError } = await supabase.storage
+          .from("files")
+          .download(fileData.filename);
+        
+        if (!downloadError) {
+          const buffer = Buffer.from(await fileBuffer.arrayBuffer());
+          const pdfData = await pdfParse(buffer);
+          originalText = pdfData.text;
+        }
+      } catch (pdfErr) {
+        console.error('PDF parsing error:', pdfErr);
+      }
+    }
 
-    // Simple translation (replace with actual translation service)
-    const translatedText = pdfData.text.length > 500 
-      ? pdfData.text.substring(0, 500) + "... [Translation truncated for demo]"
-      : pdfData.text;
+    try {
+      // Try Hugging Face API translation
+      const prompt = `Translate the following text to isiZulu: "${originalText.substring(0, 1000)}"`;
+      translatedText = await callHuggingFaceAPI("tiiuae/falcon-7b-instruct", prompt);
+    } catch (err) {
+      // Fallback translation
+      translatedText = `[isiZulu translation of ${fileData.original_name}] - Translation service temporarily unavailable. Original content: ${originalText.substring(0, 300)}...`;
+    }
 
     // Update translation in database
     await supabase
@@ -252,7 +325,7 @@ app.post("/translate-pdf/:id", async (req, res) => {
 
     res.json({ 
       success: true,
-      originalText: pdfData.text,
+      originalText: originalText,
       translatedText: translatedText,
       filename: `translated_${fileData.original_name}`,
       downloadUrl: `/files/download/${fileData.filename}`
