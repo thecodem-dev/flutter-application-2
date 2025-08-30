@@ -5,7 +5,7 @@ import 'session.dart';
 class Api {
   static const base = String.fromEnvironment(
     'API_BASE',
-    defaultValue: 'http://localhost:5000',
+    defaultValue: 'https://flutter-application-2-1.onrender.com',
   );
   
   // Supabase configuration (if you plan to use it directly in Flutter)

@@ -3,7 +3,7 @@
   publish = "build/web"
   command = """
     flutter build web \
-      --dart-define=API_BASE=$API_BASE \
+      --dart-define=API_BASE=https://flutter-application-2-1.onrender.com \
       --dart-define=SUPABASE_URL=$SUPABASE_URL \
       --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
   """
