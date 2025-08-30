@@ -1,0 +1,308 @@
+8:30:37 PM: Netlify Build                                                 
+8:30:37 PM: ────────────────────────────────────────────────────────────────
+8:30:37 PM: ​
+8:30:37 PM: ❯ Version
+8:30:37 PM:   @netlify/build 35.1.3
+8:30:37 PM: ​
+8:30:37 PM: ❯ Flags
+8:30:37 PM:   accountId: 67b254a63fdff0013be0225f
+8:30:37 PM:   baseRelDir: true
+8:30:37 PM:   buildId: 68b342cdf002a93babbf60e9
+8:30:37 PM:   deployId: 68b342cdf002a93babbf60eb
+8:30:37 PM: ​
+8:30:37 PM: ❯ Current directory
+8:30:37 PM:   /opt/build/repo
+8:30:37 PM: ​
+8:30:37 PM: ❯ Config file
+8:30:37 PM:   /opt/build/repo/netlify.toml
+8:30:37 PM: ​
+8:30:37 PM: ❯ Context
+8:30:37 PM:   production
+8:30:37 PM: ​
+8:30:37 PM: build.command from netlify.toml                               
+8:30:37 PM: ────────────────────────────────────────────────────────────────
+8:30:37 PM: ​
+8:30:37 PM: $     # Install Flutter
+8:30:37 PM:     git clone https://github.com/flutter/flutter.git -b stable --depth 1 flutter_sdk
+8:30:37 PM:     export PATH="$PWD/flutter_sdk/bin:$PATH"
+8:30:37 PM:     flutter doctor
+8:30:37 PM:     flutter config --enable-web
+8:30:37 PM:     
+8:30:37 PM:     # Build the Flutter web app
+8:30:37 PM:     flutter build web --dart-define=API_BASE=**** --dart-define=SUPABASE_URL=$SUPABASE_URL --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+8:30:37 PM:   
+8:30:37 PM: Cloning into 'flutter_sdk'...
+8:30:40 PM: Updating files:  91% (13636/14889)
+8:30:40 PM: Updating files:  92% (13698/14889)
+8:30:40 PM: Updating files:  93% (13847/14889)
+8:30:40 PM: Updating files:  94% (13996/14889)
+8:30:40 PM: Updating files:  95% (14145/14889)
+8:30:40 PM: Updating files:  96% (14294/14889)
+8:30:40 PM: Updating files:  97% (14443/14889)
+8:30:40 PM: Updating files:  98% (14592/14889)
+8:30:40 PM: Updating files:  99% (14741/14889)
+8:30:40 PM: Updating files: 100% (14889/14889)
+8:30:40 PM: Updating files: 100% (14889/14889), done.
+8:30:40 PM: Downloading Linux x64 Dart SDK from Flutter engine a8bfdfc394deaed5c57bd45a64ac4294dc976a72...
+8:30:40 PM:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+8:30:40 PM:                                  Dload  Upload   Total   Spent    Left  Speed
+8:30:41 PM:   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+8:30:42 PM:  33  207M   33 70.2M    0     0  92.1M      0  0:00:02 --:--:--  0:00:02 92.1M
+8:30:42 PM:  84  207M   84  174M    0     0  99.4M      0  0:00:02  0:00:01  0:00:01 99.4M
+8:30:42 PM: 100  207M  100  207M    0     0   103M      0  0:00:02  0:00:02 --:--:--  103M
+8:30:48 PM: Building flutter tool...
+8:30:48 PM: Resolving dependencies...
+8:30:49 PM: Downloading packages...
+8:30:51 PM: + _fe_analyzer_shared 82.0.0 (88.0.0 available)
+8:30:51 PM: + analyzer 7.4.5 (8.1.1 available)
+8:30:51 PM: + archive 3.6.1 (4.0.7 available)
+8:30:51 PM: + args 2.7.0
+8:30:51 PM: + async 2.13.0
+8:30:51 PM: + boolean_selector 2.1.2
+8:30:51 PM: + browser_launcher 1.1.3
+8:30:51 PM: + built_collection 5.1.1
+8:30:51 PM: + built_value 8.10.1 (8.11.1 available)
+8:30:51 PM: + checked_yaml 2.0.4
+8:30:51 PM: + cli_config 0.2.0
+8:30:51 PM: + clock 1.1.2
+8:30:51 PM: + code_assets 0.19.4 (0.19.6 available)
+8:30:51 PM: + code_builder 4.10.1
+8:30:51 PM: + collection 1.19.1
+8:30:51 PM: + completion 1.0.1 (1.0.2 available)
+8:30:51 PM: + convert 3.1.2
+8:30:51 PM: + coverage 1.14.1 (1.15.0 available)
+8:30:51 PM: + crypto 3.0.6
+8:30:51 PM: + csslib 1.0.2
+8:30:51 PM: + dap 1.4.0
+8:30:51 PM: + dart_service_protocol_shared 0.0.3
+8:30:51 PM: + dart_style 3.1.0 (3.1.2 available)
+8:30:51 PM: + dds 5.0.3 (5.1.0 available)
+8:30:51 PM: + dds_service_extensions 2.0.2 (2.1.0 available)
+8:30:51 PM: + devtools_shared 12.0.0
+8:30:51 PM: + dtd 4.0.0
+8:30:51 PM: + dwds 24.4.0+1 (25.1.0 available)
+8:30:51 PM: + extension_discovery 2.1.0
+8:30:51 PM: + fake_async 1.3.3
+8:30:51 PM: + ffi 2.1.4
+8:30:51 PM: + file 7.0.1
+8:30:51 PM: + file_testing 3.0.2
+8:30:51 PM: + fixnum 1.1.1
+8:30:51 PM: + flutter_template_images 5.0.0
+8:30:51 PM: + frontend_server_client 4.0.0
+8:30:51 PM: + glob 2.1.3
+8:30:51 PM: + graphs 2.3.2
+8:30:51 PM: + hooks 0.19.5 (0.20.1 available)
+8:30:51 PM: + hooks_runner 0.21.0 (0.22.1 available)
+8:30:51 PM: + html 0.15.6
+8:30:51 PM: + http 1.4.0 (1.5.0 available)
+8:30:51 PM: + http_multi_server 3.2.2
+8:30:51 PM: + http_parser 4.1.2
+8:30:51 PM: + intl 0.20.2
+8:30:51 PM: + io 1.0.5
+8:30:51 PM: + js 0.7.2 (discontinued)
+8:30:51 PM: + json_annotation 4.9.0
+8:30:51 PM: + json_rpc_2 3.0.3 (4.0.0 available)
+8:30:51 PM: + logging 1.3.0
+8:30:51 PM: + matcher 0.12.17
+8:30:51 PM: + meta 1.17.0
+8:30:51 PM: + mime 2.0.0
+8:30:51 PM: + multicast_dns 0.3.3
+8:30:51 PM: + mustache_template 2.0.0
+8:30:51 PM: + native_stack_traces 0.6.1
+8:30:51 PM: + node_preamble 2.0.2
+8:30:51 PM: + package_config 2.2.0
+8:30:51 PM: + path 1.9.1
+8:30:51 PM: + petitparser 6.1.0 (7.0.1 available)
+8:30:51 PM: + platform 3.1.6
+8:30:51 PM: + pool 1.5.1
+8:30:51 PM: + process 5.0.4 (5.0.5 available)
+8:30:51 PM: + pub_semver 2.2.0
+8:30:51 PM: + pubspec_parse 1.5.0
+8:30:51 PM: + shelf 1.4.2
+8:30:51 PM: + shelf_packages_handler 3.0.2
+8:30:51 PM: + shelf_proxy 1.0.4
+8:30:51 PM: + shelf_static 1.1.3
+8:30:51 PM: + shelf_web_socket 2.0.1 (3.0.0 available)
+8:30:51 PM: + source_map_stack_trace 2.1.2
+8:30:51 PM: + source_maps 0.10.13
+8:30:51 PM: + source_span 1.10.1
+8:30:51 PM: + sprintf 7.0.0
+8:30:51 PM: + sse 4.1.8
+8:30:51 PM: + stack_trace 1.12.1
+8:30:51 PM: + standard_message_codec 0.0.1+4
+8:30:51 PM: + stream_channel 2.1.4
+8:30:51 PM: + string_scanner 1.4.1
+8:30:51 PM: + sync_http 0.3.1
+8:30:51 PM: + term_glyph 1.2.2
+8:30:51 PM: + test 1.26.2 (1.26.3 available)
+8:30:51 PM: + test_api 0.7.6 (0.7.7 available)
+8:30:51 PM: + test_core 0.6.11 (0.6.12 available)
+8:30:51 PM: + typed_data 1.4.0
+8:30:51 PM: + unified_analytics 8.0.5
+8:30:51 PM: + usage 4.1.1 (discontinued)
+8:30:51 PM: + uuid 4.5.1
+8:30:51 PM: + vm_service 15.0.2
+8:30:51 PM: + vm_service_interface 2.0.1
+8:30:51 PM: + vm_snapshot_analysis 0.7.6
+8:30:51 PM: + watcher 1.1.2 (1.1.3 available)
+8:30:51 PM: + web 1.1.1
+8:30:51 PM: + web_socket 1.0.1
+8:30:51 PM: + web_socket_channel 3.0.3
+8:30:51 PM: + webdriver 3.1.0
+8:30:51 PM: + webkit_inspection_protocol 1.2.1
+8:30:51 PM: + xml 6.5.0 (6.6.1 available)
+8:30:51 PM: + yaml 3.1.3
+8:30:51 PM: + yaml_edit 2.2.2
+8:30:51 PM: Changed 100 dependencies!
+8:30:51 PM: 2 packages are discontinued.
+8:30:51 PM: 23 packages have newer versions incompatible with dependency constraints.
+8:30:51 PM: Try `dart pub outdated` for more information.
+8:31:04 PM: Downloading Material fonts...                                      277ms
+8:31:04 PM: Downloading Gradle Wrapper...                                       59ms
+8:31:05 PM: Downloading package sky_engine...                                   68ms
+8:31:05 PM: Downloading package flutter_gpu...                                  34ms
+8:31:05 PM: Downloading flutter_patched_sdk tools...                           261ms
+8:31:05 PM: Downloading flutter_patched_sdk_product tools...                   217ms
+8:31:07 PM: Downloading linux-x64 tools...                                   1,651ms
+8:31:08 PM: Downloading linux-x64/font-subset tools...                         117ms
+8:31:08 PM: Doctor summary (to see all details, run flutter doctor -v):
+8:31:08 PM: [✓] Flutter (Channel stable, 3.35.2, on Ubuntu 24.04.2 LTS 5.10.233-224.894.amzn2.x86_64, locale en_US.UTF-8)
+8:31:08 PM: [✗] Android toolchain - develop for Android devices
+8:31:08 PM:     ✗ Unable to locate Android SDK.
+8:31:08 PM:       Install Android Studio from: https://developer.android.com/studio/index.html
+8:31:08 PM:       On first launch it will assist you in installing the Android SDK components.
+8:31:08 PM:       (or visit https://flutter.dev/to/linux-android-setup for detailed instructions).
+8:31:08 PM:       If the Android SDK has been installed to a custom location, please use
+8:31:08 PM:       `flutter config --android-sdk` to update to that location.
+8:31:08 PM: [✗] Chrome - develop for the web (Cannot find Chrome executable at google-chrome)
+8:31:08 PM:     ! Cannot find Chrome. Try setting CHROME_EXECUTABLE to a Chrome executable.
+8:31:08 PM: [✗] Linux toolchain - develop for Linux desktop
+8:31:08 PM:     ✗ clang++ is required for Linux development.
+8:31:08 PM:       It is likely available from your distribution (e.g.: apt install clang), or can be downloaded from https://releases.llvm.org/
+8:31:08 PM:     ✗ ninja is required for Linux development.
+8:31:08 PM:       It is likely available from your distribution (e.g.: apt install ninja-build), or can be downloaded from https://github.com/ninja-build/ninja/releases
+8:31:08 PM:     ✗ GTK 3.0 development libraries are required for Linux development.
+8:31:08 PM:       They are likely available from your distribution (e.g.: apt install libgtk-3-dev)
+8:31:08 PM:     ! Unable to access driver information using 'eglinfo'.
+8:31:08 PM:       It is likely available from your distribution (e.g.: apt install mesa-utils)
+8:31:08 PM: [!] Android Studio (not installed)
+8:31:08 PM: [✓] Connected device (1 available)
+8:31:08 PM: [✓] Network resources
+8:31:08 PM: ! Doctor found issues in 4 categories.
+8:31:08 PM: Setting "enable-web" value to "true".
+8:31:08 PM: You may need to restart any open editors for them to read new settings.
+8:31:10 PM: Downloading Web SDK...                                           1,531ms
+8:31:11 PM: Resolving dependencies...
+8:31:12 PM: Downloading packages...
+8:31:14 PM:   characters 1.4.0 (1.4.1 available)
+8:31:14 PM:   file_picker 8.3.7 (10.3.2 available)
+8:31:14 PM:   flutter_lints 5.0.0 (6.0.0 available)
+8:31:14 PM:   flutter_secure_storage_linux 1.2.3 (2.0.1 available)
+8:31:14 PM:   flutter_secure_storage_macos 3.1.3 (4.0.0 available)
+8:31:14 PM:   flutter_secure_storage_platform_interface 1.1.2 (2.0.1 available)
+8:31:14 PM:   flutter_secure_storage_web 1.2.1 (2.0.0 available)
+8:31:14 PM:   flutter_secure_storage_windows 3.1.2 (4.0.0 available)
+8:31:14 PM:   http 1.4.0 (1.5.0 available)
+8:31:14 PM:   icons_plus 4.0.0 (5.0.0 available)
+8:31:14 PM:   js 0.6.7 (0.7.2 available)
+8:31:14 PM: > leak_tracker 11.0.1 (was 10.0.9)
+8:31:14 PM: > leak_tracker_flutter_testing 3.0.10 (was 3.0.9)
+8:31:14 PM: > leak_tracker_testing 3.0.2 (was 3.0.1)
+8:31:14 PM:   lints 5.1.1 (6.0.0 available)
+8:31:14 PM:   material_color_utilities 0.11.1 (0.13.0 available)
+8:31:14 PM:   meta 1.16.0 (1.17.0 available)
+8:31:14 PM:   petitparser 6.1.0 (7.0.1 available)
+8:31:14 PM:   share_plus 10.1.4 (11.1.0 available)
+8:31:14 PM:   share_plus_platform_interface 5.0.2 (6.1.0 available)
+8:31:14 PM: > test_api 0.7.6 (was 0.7.4) (0.7.7 available)
+8:31:14 PM:   vector_graphics_compiler 1.1.17 (1.1.19 available)
+8:31:14 PM: > vector_math 2.2.0 (was 2.1.4)
+8:31:14 PM:   vm_service 15.0.0 (15.0.2 available)
+8:31:14 PM:   xml 6.5.0 (6.6.1 available)
+8:31:14 PM: Changed 5 dependencies!
+8:31:14 PM: 21 packages have newer versions incompatible with dependency constraints.
+8:31:14 PM: Try `flutter pub outdated` for more information.
+8:31:23 PM: Compiling lib/main.dart for the Web...
+8:31:23 PM: Wasm dry run findings:
+8:31:23 PM: Found incompatibilities with WebAssembly.
+8:31:23 PM: package:flutter_secure_storage_web/flutter_secure_storage_web.dart 5:1 - dart:html unsupported (0)
+8:31:23 PM: package:flutter_secure_storage_web/src/subtle.dart 21:1 - dart:html unsupported (0)
+8:31:23 PM: package:js/js.dart 10:1 - dart:js unsupported (1)
+8:31:23 PM: package:flutter_secure_storage_web/flutter_secure_storage_web.dart 6:1 - JS interop library 'dart:js_util' can't be imported when compiling to Wasm. (2)
+package:flutter_secure_storage_web/src/subtle.dart 22:1 - JS interop library 'dart:js_util' can't be imported when compiling to Wasm. (2)
+package:flutter_secure_storage_web/src/subtle.dart 26:1 - JS interop library 'package:js/js.dart' can't be imported when compiling to Wasm. (2)
+8:31:23 PM: Consider addressing these issues to enable wasm builds. See docs for more info: https://docs.flutter.dev/platform-integration/web/wasm
+8:31:23 PM: Use --no-wasm-dry-run to disable these warnings.
+8:31:43 PM: Font asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 1472 bytes (99.4% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+8:31:43 PM: Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 10132 bytes (99.4% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+8:31:44 PM: Compiling lib/main.dart for the Web...                             30.2s
+8:31:44 PM: ✓ Built build/web
+8:31:44 PM: ​
+8:31:44 PM: (build.command completed in 1m 7s)
+8:31:54 PM: Failed during stage 'building site': Build script returned non-zero exit code: 2
+8:31:53 PM: ​
+8:31:53 PM: Scanning for secrets in code and build output.                
+8:31:53 PM: ────────────────────────────────────────────────────────────────
+8:31:53 PM: ​
+8:31:53 PM: ​
+8:31:53 PM: ❯ Scanning complete. 20727 file(s) scanned. Secrets scanning found 2 instance(s) of secrets in build output or repo code.
+8:31:53 PM: ​
+8:31:53 PM: Secret env var "API_BASE"'s value detected:
+  found value at line 73281 in .dart_tool/flutter_build/8cb3d4de49aa330667cad00c6dc81229/app.dill
+8:31:53 PM:   found value at line 90506 in .dart_tool/flutter_build/8cb3d4de49aa330667cad00c6dc81229/main.dart.js
+8:31:53 PM:   found value at line 101236 in .dart_tool/flutter_build/8cb3d4de49aa330667cad00c6dc81229/main.dart.js
+8:31:53 PM:   found value at line 8 in TODO.md
+8:31:53 PM:   found value at line 20 in backend/server.js
+8:31:53 PM:   found value at line 90506 in build/web/main.dart.js
+8:31:53 PM:   found value at line 101236 in build/web/main.dart.js
+8:31:53 PM:   found value at line 8 in lib/src/services/api.dart
+8:31:53 PM:   found value at line 13 in netlify.toml
+8:31:53 PM: Secret env var "SUPABASE_URL"'s value detected:
+  found value at line 73309 in .dart_tool/flutter_build/8cb3d4de49aa330667cad00c6dc81229/app.dill
+8:31:53 PM: ​
+8:31:53 PM: To prevent exposing secrets, the build will fail until these secret values are not found in build output or repo files.
+8:31:53 PM: ​
+8:31:53 PM: If these are expected, use SECRETS_SCAN_OMIT_PATHS, SECRETS_SCAN_OMIT_KEYS, or SECRETS_SCAN_ENABLED to prevent detecting.
+8:31:53 PM: ​
+8:31:53 PM: For more information on secrets scanning, see the Netlify Docs: https://ntl.fyi/configure-secrets-scanning
+8:31:53 PM: ​
+8:31:53 PM: Secrets scanning detected secrets in files during build.      
+8:31:53 PM: ────────────────────────────────────────────────────────────────
+8:31:53 PM: ​
+8:31:53 PM:   Error message
+8:31:53 PM:   Secrets scanning found secrets in build.
+8:31:53 PM: ​
+8:31:53 PM:   Resolved config
+8:31:53 PM:   build:
+8:31:53 PM:     command: "    # Install Flutter
+​
+8:31:53 PM:       \    git clone https://github.com/flutter/flutter.git -b stable --depth 1
+8:31:53 PM:       flutter_sdk
+8:31:53 PM: ​
+8:31:53 PM:       \    export PATH=\"$PWD/flutter_sdk/bin:$PATH\"
+​
+8:31:53 PM:       \    flutter doctor
+8:31:53 PM: ​
+8:31:53 PM:       \    flutter config --enable-web
+8:31:53 PM: ​
+8:31:53 PM:       \\   \" account_id=67b254a63fdff0013be0225f account_type=free-is-free build_command=true build_from_zip=false build_id=68b342cdf002a93babbf60e9 build_zip_url=
+8:31:53 PM: ​
+8:31:53 PM:       \    # Build the Flutter web app
+8:31:53 PM: ​
+8:31:53 PM:       \    flutter build web
+8:31:53 PM:       --dart-define=API_BASE=****
+8:31:53 PM:       --dart-define=SUPABASE_URL=$SUPABASE_URL
+8:31:53 PM:       --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+8:31:53 PM: ​
+8:31:53 PM:       \  "
+    commandOrigin: config
+8:31:53 PM:     environment:
+8:31:53 PM:       - API_BASE
+8:31:53 PM:       - SUPABASE_ANON_KEY
+8:31:53 PM:       - SUPABASE_URL
+8:31:53 PM:       - FLUTTER_WEB
+8:31:53 PM:     publish: /opt/build/repo/build/web
+8:31:53 PM:     publishOrigin: config
+8:31:54 PM: Build failed due to a user error: Build script returned non-zero exit code: 2
+8:31:54 PM: Failing build: Failed to build site
+8:31:54 PM: Finished processing build request in 1m26.856s
