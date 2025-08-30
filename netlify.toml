@@ -2,6 +2,13 @@
 [build]
   publish = "build/web"
   command = """
+    # Install Flutter
+    git clone https://github.com/flutter/flutter.git -b stable --depth 1 flutter_sdk
+    export PATH="$PWD/flutter_sdk/bin:$PATH"
+    flutter doctor
+    flutter config --enable-web
+    
+    # Build the Flutter web app
     flutter build web \
       --dart-define=API_BASE=https://flutter-application-2-1.onrender.com \
       --dart-define=SUPABASE_URL=$SUPABASE_URL \
