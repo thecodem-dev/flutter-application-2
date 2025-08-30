@@ -1,0 +1,58 @@
+8:25:01 PM: Netlify Build                                                 
+8:25:01 PM: ────────────────────────────────────────────────────────────────
+8:25:01 PM: ​
+8:25:01 PM: ❯ Version
+8:25:01 PM:   @netlify/build 35.1.3
+8:25:01 PM: ​
+8:25:01 PM: ❯ Flags
+8:25:01 PM:   accountId: 67b254a63fdff0013be0225f
+8:25:01 PM:   baseRelDir: true
+8:25:01 PM:   buildId: 68b341f242a1803592344f14
+8:25:01 PM:   deployId: 68b341f242a1803592344f16
+8:25:01 PM: ​
+8:25:01 PM: ❯ Current directory
+8:25:01 PM:   /opt/build/repo
+8:25:01 PM: ​
+8:25:01 PM: ❯ Config file
+8:25:01 PM:   /opt/build/repo/netlify.toml
+8:25:01 PM: ​
+8:25:01 PM: ❯ Context
+8:25:01 PM:   production
+8:25:01 PM: ​
+8:25:01 PM: build.command from netlify.toml                               
+8:25:01 PM: ────────────────────────────────────────────────────────────────
+8:25:01 PM: ​
+8:25:01 PM: $     flutter build web --dart-define=API_BASE=**** --dart-define=SUPABASE_URL=$SUPABASE_URL --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+8:25:01 PM:   
+8:25:01 PM: bash: line 1: flutter: command not found
+8:25:01 PM: ​
+8:25:01 PM: "build.command" failed                                        
+8:25:01 PM: ────────────────────────────────────────────────────────────────
+8:25:01 PM: ​
+8:25:01 PM:   Error message
+8:25:01 PM:   Command failed with exit code 127:     flutter build web --dart-define=API_BASE=**** --dart-define=SUPABASE_URL=$SUPABASE_URL --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+8:25:01 PM: ​​
+8:25:01 PM:   Error location
+8:25:01 PM:   In build.command from netlify.toml:
+8:25:01 PM:       flutter build web --dart-define=API_BASE=**** --dart-define=SUPABASE_URL=$SUPABASE_URL --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+8:25:01 PM: ​​
+8:25:01 PM:   Resolved config
+8:25:01 PM:   build:
+8:25:01 PM:     command: "    flutter build web
+      --dart-define=API_BASE=****
+8:25:01 PM:       --dart-define=SUPABASE_URL=$SUPABASE_URL
+8:25:01 PM:       --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+8:25:01 PM: ​
+8:25:01 PM:       \  "
+    commandOrigin: config
+8:25:01 PM:     environment:
+8:25:01 PM:       - API_BASE
+8:25:01 PM:       - SUPABASE_ANON_KEY
+8:25:01 PM:       - SUPABASE_URL
+8:25:01 PM:       - FLUTTER_WEB
+8:25:01 PM:     publish: /opt/build/repo/build/web
+8:25:01 PM:     publishOrigin: config
+8:25:01 PM: Build failed due to a user error: Build script returned non-zero exit code: 2
+8:25:01 PM: Failing build: Failed to build site
+8:25:01 PM: Finished processing build request in 9.922s
+8:25:01 PM: Failed during stage 'building site': Build script returned non-zero exit code: 2
