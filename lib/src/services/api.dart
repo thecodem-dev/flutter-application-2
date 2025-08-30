@@ -5,7 +5,7 @@ import 'session.dart';
 class Api {
   static const base = String.fromEnvironment(
     'API_BASE',
-    defaultValue: 'https://flutter-application-2-1.onrender.com',
+    defaultValue: 'http://localhost:3000',
   );
 
   static Future<Map<String, dynamic>> post(String path, Map body) async {
@@ -40,5 +40,22 @@ class Api {
       },
     );
     return jsonDecode(res.body);
+  }
+
+  static Future<Map<String, dynamic>> uploadFiles(String path, List<String> filePaths) async {
+    final t = await Session.token();
+    final request = http.MultipartRequest('POST', Uri.parse('$base$path'));
+    
+    if (t != null) {
+      request.headers['Authorization'] = 'Bearer $t';
+    }
+    
+    for (String filePath in filePaths) {
+      request.files.add(await http.MultipartFile.fromPath('files', filePath));
+    }
+    
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+    return jsonDecode(responseBody);
   }
 }
