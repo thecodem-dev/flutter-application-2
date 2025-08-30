@@ -2,13 +2,13 @@
 [build]
   publish = "build/web"
   command = """
-    # Install Flutter
+    # Install Flutter SDK
     git clone https://github.com/flutter/flutter.git -b stable --depth 1 flutter_sdk
     export PATH="$PWD/flutter_sdk/bin:$PATH"
     flutter doctor
     flutter config --enable-web
-    
-    # Build the Flutter web app
+
+    # Build the Flutter web app with environment variables
     flutter build web \
       --dart-define=API_BASE=https://flutter-application-2-1.onrender.com \
       --dart-define=SUPABASE_URL=$SUPABASE_URL \
@@ -17,3 +17,6 @@
 
 [build.environment]
   FLUTTER_WEB = "true"
+
+  #  Tell Netlify to ignore these “secrets” because they are safe/public
+  SECRETS_SCAN_OMIT_KEYS = "API_BASE,SUPABASE_URL,SUPABASE_ANON_KEY"
