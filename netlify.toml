@@ -1,0 +1,12 @@
+
+[build]
+  publish = "build/web"
+  command = """
+    flutter build web \
+      --dart-define=API_BASE=$API_BASE \
+      --dart-define=SUPABASE_URL=$SUPABASE_URL \
+      --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+  """
+
+[build.environment]
+  FLUTTER_WEB = "true"

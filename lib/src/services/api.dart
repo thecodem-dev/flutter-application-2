@@ -7,6 +7,10 @@ class Api {
     'API_BASE',
     defaultValue: 'http://localhost:5000',
   );
+  
+  // Supabase configuration (if you plan to use it directly in Flutter)
+  static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 
   static Future<Map<String, dynamic>> post(String path, Map body) async {
     final t = await Session.token();
