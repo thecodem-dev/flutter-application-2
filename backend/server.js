@@ -1,4 +1,3 @@
-
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
@@ -8,6 +7,15 @@ import axios from "axios";
 import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
 import "dotenv/config";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from 'url';
+import textToSpeech from '@google-cloud/text-to-speech';
+import speech from '@google-cloud/speech';
+
+// ES Modules fix for __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // -------------------- Setup --------------------
 const app = express();
@@ -29,14 +37,37 @@ const io = new Server(server, {
 });
 
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static("public"));
+
+// Ensure directories exist
+const audioDir = path.join(__dirname, 'public', 'audio');
+const generatedMediaDir = path.join(__dirname, 'public', 'generated-media');
+if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir, { recursive: true });
+if (!fs.existsSync(generatedMediaDir)) fs.mkdirSync(generatedMediaDir, { recursive: true });
 
 // Supabase client
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 // Multer memory storage
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+
+// Initialize Google Cloud clients (for speech-to-text and text-to-speech)
+let speechClient, ttsClient;
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  try {
+    speechClient = new speech.SpeechClient();
+    ttsClient = new textToSpeech.TextToSpeechClient();
+  } catch (error) {
+    console.warn('Google Cloud credentials not properly configured:', error.message);
+  }
+} else {
+  console.warn('GOOGLE_APPLICATION_CREDENTIALS not set - voice features will be disabled');
+}
 
 // Supabase connection test
 async function testSupabaseConnection() {
@@ -89,23 +120,24 @@ async function simpleChatbotResponse(message, language) {
   return langResponses.default;
 }
 
-// Hugging Face API integration function
-async function callHuggingFaceAPI(model, prompt) {
+// Hugging Face API integration function - FIXED
+async function callHuggingFaceAPI(model, prompt, parameters = {}) {
   try {
     // Check if API key is available
     if (!process.env.HUGGING_FACE_API_KEY) {
       throw new Error("Hugging Face API key not configured");
     }
 
+    const payload = { inputs: prompt, ...parameters };
     const response = await axios.post(
-      `https://api-inference.huggingface.co/models/${model}`,
-      { inputs: prompt },
+      `https://api-inference.huggingface.co/models/${model}`, // Use the model parameter correctly
+      payload,
       {
         headers: {
           Authorization: `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
           "Content-Type": "application/json",
         },
-        timeout: 30000, // 30 second timeout
+        timeout: 60000, // 60 second timeout for longer processes
       }
     );
 
@@ -114,7 +146,8 @@ async function callHuggingFaceAPI(model, prompt) {
     } else if (response.data && response.data.error) {
       throw new Error(`Hugging Face API error: ${response.data.error}`);
     } else {
-      throw new Error("Unexpected response format from Hugging Face API");
+      // For models that return different response formats (like image generation)
+      return response.data;
     }
   } catch (error) {
     console.error("Hugging Face API call failed:", error.message);
@@ -129,6 +162,249 @@ async function callHuggingFaceAPI(model, prompt) {
     }
     
     throw error; // Re-throw for the caller to handle
+  }
+}
+
+// Alternative text-to-speech using Facebook's MMS-TTS for African languages
+async function generateSpeechWithMMS(text, language = 'en') {
+  try {
+    // Map languages to MMS-TTS language codes
+    const languageMap = {
+      'en': 'eng',
+      'zulu': 'zul',
+      'xhosa': 'xho',
+      'afrikaans': 'afr'
+    };
+    
+    const langCode = languageMap[language] || 'eng';
+    
+    const result = await callHuggingFaceAPI(
+      "facebook/mms-tts", 
+      text,
+      { 
+        parameters: { 
+          wait_for_model: true,
+          language: langCode
+        } 
+      }
+    );
+    
+    // MMS-TTS returns audio data
+    const filename = `audio_${Date.now()}.wav`;
+    const filepath = path.join(audioDir, filename);
+    
+    // Handle the audio response
+    let audioBuffer;
+    if (Buffer.isBuffer(result)) {
+      audioBuffer = result;
+    } else {
+      audioBuffer = Buffer.from(result);
+    }
+    
+    fs.writeFileSync(filepath, audioBuffer);
+    return `/audio/${filename}`;
+  } catch (error) {
+    console.error('MMS-TTS failed, falling back to Google TTS:', error);
+    
+    // Fall back to Google TTS
+    if (ttsClient) {
+      return await generateSpeech(text, language);
+    }
+    
+    throw new Error('All text-to-speech services failed');
+  }
+}
+
+// Enhanced text-to-speech function with fallback
+async function generateSpeech(text, language = 'en') {
+  // Try MMS-TTS first for African languages, fall back to Google TTS
+  if (['zulu', 'xhosa', 'afrikaans'].includes(language)) {
+    try {
+      return await generateSpeechWithMMS(text, language);
+    } catch (error) {
+      console.warn('MMS-TTS failed, falling back to Google TTS');
+    }
+  }
+  
+  // Use Google TTS for other languages or as fallback
+  if (!ttsClient) {
+    throw new Error('Text-to-speech not configured');
+  }
+
+  // Map languages to voice codes
+  const voiceMap = {
+    'en': { languageCode: 'en-US', name: 'en-US-Neural2-F' },
+    'zulu': { languageCode: 'zu-ZA', name: 'zu-ZA-Standard-A' },
+    'xhosa': { languageCode: 'xh-ZA', name: 'xh-ZA-Standard-A' },
+    'afrikaans': { languageCode: 'af-ZA', name: 'af-ZA-Standard-A' }
+  };
+
+  const voiceConfig = voiceMap[language] || voiceMap['en'];
+
+  const request = {
+    input: { text },
+    voice: voiceConfig,
+    audioConfig: { 
+      audioEncoding: 'MP3',
+      speakingRate: 0.9, // Slightly slower for educational content
+      pitch: 0 // Neutral pitch
+    }
+  };
+
+  try {
+    const [response] = await ttsClient.synthesizeSpeech(request);
+    const filename = `audio_${Date.now()}.mp3`;
+    const filepath = path.join(audioDir, filename);
+    
+    fs.writeFileSync(filepath, response.audioContent, 'binary');
+    return `/audio/${filename}`;
+  } catch (error) {
+    console.error('Text-to-speech error:', error);
+    throw new Error(`Failed to generate speech: ${error.message}`);
+  }
+}
+
+// Speech-to-Text function
+async function transcribeAudio(audioBuffer, language = 'en') {
+  if (!speechClient) {
+    throw new Error('Speech-to-text not configured');
+  }
+
+  // Map languages to recognition config
+  const languageMap = {
+    'en': 'en-ZA',
+    'zulu': 'zu-ZA',
+    'xhosa': 'xh-ZA',
+    'afrikaans': 'af-ZA'
+  };
+
+  const languageCode = languageMap[language] || 'en-ZA';
+
+  const audioBytes = audioBuffer.toString('base64');
+  const request = {
+    audio: { content: audioBytes },
+    config: {
+      encoding: 'WEBM_OPUS',
+      sampleRateHertz: 48000,
+      languageCode: languageCode,
+      model: 'command_and_search' // Better for voice commands
+    },
+  };
+
+  try {
+    const [response] = await speechClient.recognize(request);
+    if (!response.results || response.results.length === 0) {
+      throw new Error('No speech recognized');
+    }
+    
+    const transcription = response.results
+      .map(result => result.alternatives[0].transcript)
+      .join('\n');
+    
+    return transcription;
+  } catch (error) {
+    console.error('Speech recognition error:', error);
+    throw new Error(`Speech recognition failed: ${error.message}`);
+  }
+}
+
+// Check if media already exists for a query
+async function findExistingMedia(query, mediaType, language) {
+  try {
+    const { data, error } = await supabase
+      .from('generated_media')
+      .select('*')
+      .ilike('query', `%${query}%`)
+      .eq('media_type', mediaType)
+      .eq('language', language)
+      .limit(1);
+    
+    if (error) throw error;
+    return data.length > 0 ? data[0] : null;
+  } catch (error) {
+    console.error('Error searching for existing media:', error);
+    return null;
+  }
+}
+
+// Save generated media to database
+async function saveGeneratedMedia(query, mediaType, filepath, language, description) {
+  try {
+    const filename = path.basename(filepath);
+    const publicUrl = `/generated-media/${filename}`;
+    
+    const { data, error } = await supabase
+      .from('generated_media')
+      .insert([
+        {
+          query,
+          media_type: mediaType,
+          file_path: filepath,
+          public_url: publicUrl,
+          language,
+          description
+        }
+      ])
+      .select();
+    
+    if (error) throw error;
+    return data[0];
+  } catch (error) {
+    console.error('Error saving generated media:', error);
+    return null;
+  }
+}
+
+// Generate image using Hugging Face - FIXED
+async function generateImage(prompt) {
+  try {
+    // Using the recommended Stable Diffusion model
+    const result = await callHuggingFaceAPI(
+      "stabilityai/stable-diffusion-2-1", 
+      prompt,
+      { parameters: { wait_for_model: true } }
+    );
+    
+    // The API returns image bytes
+    const filename = `image_${Date.now()}.png`;
+    const filepath = path.join(generatedMediaDir, filename);
+    
+    // Handle different response formats from image generation models
+    let imageBuffer;
+    if (Buffer.isBuffer(result)) {
+      imageBuffer = result;
+    } else if (typeof result === 'string' && result.startsWith('data:image/')) {
+      // Handle base64 encoded image
+      const base64Data = result.replace(/^data:image\/\w+;base64,/, '');
+      imageBuffer = Buffer.from(base64Data, 'base64');
+    } else {
+      // Assume it's already in the right format for writing
+      imageBuffer = Buffer.from(result);
+    }
+    
+    fs.writeFileSync(filepath, imageBuffer);
+    
+    return filepath;
+  } catch (error) {
+    console.error('Image generation failed:', error);
+    throw error;
+  }
+}
+
+// Generate video using Hugging Face (text-to-video is an emerging technology)
+async function generateVideo(prompt) {
+  try {
+    // Note: Text-to-video models are still experimental
+    // This is a placeholder for when better models become available
+    console.log(`Video generation requested for: ${prompt}`);
+    
+    // For now, we'll return a placeholder or use an alternative approach
+    // You might want to use a service like RunwayML or other video generation APIs
+    
+    throw new Error('Video generation is not fully implemented yet. Please check back later.');
+  } catch (error) {
+    console.error('Video generation failed:', error);
+    throw error;
   }
 }
 
@@ -241,17 +517,17 @@ app.get("/modules", async (req, res) => {
 // -------------------- Text Translation --------------------
 app.post("/translate", async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, targetLanguage = "zulu" } = req.body;
     if (!text) return res.status(400).json({ error: "Text required" });
 
     let translatedText;
     try {
-      // Try Hugging Face API first
-      const prompt = `Translate the following English text to isiZulu: "${text}"`;
-      translatedText = await callHuggingFaceAPI("tiiuae/falcon-7b-instruct", prompt);
+      // Use the recommended model for African languages
+      const prompt = `Translate the following English text to ${targetLanguage}: "${text}"`;
+      translatedText = await callHuggingFaceAPI("facebook/m2m100_1.2B", prompt);
     } catch (err) {
       // Fallback to simple response
-      translatedText = `[isiZulu translation of: ${text}] - Translation service temporarily unavailable`;
+      translatedText = `[${targetLanguage} translation of: ${text}] - Translation service temporarily unavailable`;
     }
 
     res.json({ 
@@ -309,9 +585,9 @@ app.post("/translate-pdf/:id", async (req, res) => {
     }
 
     try {
-      // Try Hugging Face API translation
+      // Use the recommended model for African languages
       const prompt = `Translate the following text to isiZulu: "${originalText.substring(0, 1000)}"`;
-      translatedText = await callHuggingFaceAPI("tiiuae/falcon-7b-instruct", prompt);
+      translatedText = await callHuggingFaceAPI("facebook/m2m100_1.2B", prompt);
     } catch (err) {
       // Fallback translation
       translatedText = `[isiZulu translation of ${fileData.original_name}] - Translation service temporarily unavailable. Original content: ${originalText.substring(0, 300)}...`;
@@ -337,10 +613,110 @@ app.post("/translate-pdf/:id", async (req, res) => {
   }
 });
 
+// -------------------- Voice Processing --------------------
+app.post("/speech-to-text", upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No audio file provided" });
+    }
+
+    if (!speechClient) {
+      return res.status(500).json({ error: "Speech-to-text not configured" });
+    }
+
+    const { language = 'en' } = req.body;
+    const transcription = await transcribeAudio(req.file.buffer, language);
+    
+    res.json({ 
+      success: true,
+      transcription 
+    });
+  } catch (err) {
+    console.error('Speech-to-text error:', err);
+    res.status(500).json({ error: "Speech recognition failed", details: err.message });
+  }
+});
+
+app.post("/text-to-speech", async (req, res) => {
+  try {
+    const { text, language = 'en' } = req.body;
+    if (!text) return res.status(400).json({ error: "Text required" });
+
+    const audioUrl = await generateSpeech(text, language);
+    
+    res.json({ 
+      success: true,
+      audioUrl 
+    });
+  } catch (err) {
+    console.error('Text-to-speech error:', err);
+    res.status(500).json({ error: "Speech generation failed", details: err.message });
+  }
+});
+
+// -------------------- Media Generation --------------------
+app.post("/generate-media", async (req, res) => {
+  try {
+    const { prompt, mediaType = 'image', language = 'en' } = req.body;
+    if (!prompt) return res.status(400).json({ error: "Prompt required" });
+
+    // Check if we already have media for this query
+    const existingMedia = await findExistingMedia(prompt, mediaType, language);
+    if (existingMedia) {
+      return res.json({
+        success: true,
+        mediaUrl: existingMedia.public_url,
+        mediaType,
+        fromCache: true
+      });
+    }
+
+    let filepath, description;
+    
+    if (mediaType === 'image') {
+      // Generate image
+      filepath = await generateImage(prompt);
+      description = `Image generated for: ${prompt}`;
+    } else if (mediaType === 'video') {
+      // Generate video
+      filepath = await generateVideo(prompt);
+      description = `Video generated for: ${prompt}`;
+    } else {
+      return res.status(400).json({ error: "Unsupported media type" });
+    }
+
+    // Save to database for future reuse
+    const savedMedia = await saveGeneratedMedia(
+      prompt, 
+      mediaType, 
+      filepath, 
+      language, 
+      description
+    );
+
+    if (!savedMedia) {
+      console.error('Failed to save media to database');
+    }
+
+    const filename = path.basename(filepath);
+    const publicUrl = `/generated-media/${filename}`;
+    
+    res.json({ 
+      success: true,
+      mediaUrl: publicUrl,
+      mediaType,
+      fromCache: false
+    });
+  } catch (err) {
+    console.error('Media generation error:', err);
+    res.status(500).json({ error: "Media generation failed", details: err.message });
+  }
+});
+
 // -------------------- Chatbot --------------------
 app.post("/chat", async (req, res) => {
   try {
-    const { message, language = "zulu" } = req.body;
+    const { message, language = "zulu", generateAudio = false } = req.body;
     if (!message) return res.status(400).json({ error: "Message required" });
 
     let prompt;
@@ -350,8 +726,23 @@ app.post("/chat", async (req, res) => {
       prompt = `Respond in isiZulu: ${message}`; // Respond in isiZulu
     }
 
+    // Use the recommended text generation model
     const result = await callHuggingFaceAPI("tiiuae/falcon-7b-instruct", prompt);
-    res.json({ reply: result, language });
+    
+    let audioUrl = null;
+    if (generateAudio) {
+      try {
+        audioUrl = await generateSpeech(result, language);
+      } catch (audioError) {
+        console.error('Audio generation failed:', audioError);
+      }
+    }
+    
+    res.json({ 
+      reply: result, 
+      language,
+      audioUrl 
+    });
   } catch (err) {
     res.status(500).json({ error: "Chatbot failed", details: err.message });
   }
@@ -363,7 +754,7 @@ io.on("connection", (socket) => {
 
   socket.on("chat message", async (data) => {
     try {
-      const { message, language = "zulu" } = data;
+      const { message, language = "zulu", generateAudio = false } = data;
       
       let prompt;
       if (language === "english") {
@@ -372,8 +763,26 @@ io.on("connection", (socket) => {
         prompt = `Respond in isiZulu: ${message}`; // Respond in isiZulu
       }
 
+      // Emit thinking/processing state
+      socket.emit("bot thinking", { message: "Processing your request..." });
+      
+      // Use the recommended text generation model
       const result = await callHuggingFaceAPI("tiiuae/falcon-7b-instruct", prompt);
-      socket.emit("bot reply", { reply: result, language });
+      
+      let audioUrl = null;
+      if (generateAudio) {
+        try {
+          audioUrl = await generateSpeech(result, language);
+        } catch (audioError) {
+          console.error('Audio generation failed:', audioError);
+        }
+      }
+      
+      socket.emit("bot reply", { 
+        reply: result, 
+        language,
+        audioUrl 
+      });
     } catch {
       socket.emit("bot error", "Error processing request.");
     }
@@ -386,7 +795,8 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 5000;
 
 if (!process.env.HUGGING_FACE_API_KEY) console.warn("⚠️ HUGGING_FACE_API_KEY missing");
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_URL) console.warn("⚠️ Supabase credentials missing");
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) console.warn("⚠️ Supabase credentials missing");
+if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) console.warn("⚠️ Google Cloud credentials missing - voice features disabled");
 
 server.listen(PORT, async () => {
   console.log(`✅ Server running on port ${PORT}`);

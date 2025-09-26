@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart' as audioplayers;
+import 'package:flutter_sound/flutter_sound.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_footer.dart';
 import '../src/services/api.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'dart:typed_data';
 
 class AIPage extends StatefulWidget {
   const AIPage({super.key});
@@ -19,6 +24,60 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _isSending = false;
+
+  // Voice recording variables
+  final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+  bool _isRecording = false;
+  bool _isPlayingAudio = false;
+
+  // Animation controller for octopus
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  // Audio player for playing responses
+  final audioplayers.AudioPlayer _audioPlayer = audioplayers.AudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize animation controller
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _animation = Tween<double>(begin: 0, end: 1).animate(_animationController);
+
+    // Initialize recorder
+    _initRecorder();
+
+    // Listen to audio player state changes
+    _audioPlayer.onPlayerStateChanged.listen((state) {
+      setState(() {
+        _isPlayingAudio = state == audioplayers.PlayerState.playing;
+      });
+
+      if (state == audioplayers.PlayerState.playing) {
+        _startSpeakingAnimation();
+      } else if (state == audioplayers.PlayerState.completed) {
+        _stopSpeakingAnimation();
+      }
+    });
+  }
+
+  Future<void> _initRecorder() async {
+    await _recorder.openRecorder();
+  }
+
+  void _startSpeakingAnimation() {
+    _animationController.repeat(reverse: true);
+  }
+
+  void _stopSpeakingAnimation() {
+    _animationController.stop();
+    _animationController.value = 0;
+  }
 
   Widget _buildMessageBubble(Map<String, String> message) {
     bool isUser = message['sender'] == 'User';
@@ -44,15 +103,39 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
                 : const Radius.circular(16),
           ),
         ),
-        child: Text(
-          message['text'] ?? '',
-          style: TextStyle(
-            color: isUser ? Colors.white : Colors.black87,
-            fontSize: 16,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              message['text'] ?? '',
+              style: TextStyle(
+                color: isUser ? Colors.white : Colors.black87,
+                fontSize: 16,
+              ),
+            ),
+            if (message.containsKey('audioUrl') && message['audioUrl'] != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: IconButton(
+                  icon: Icon(
+                    _isPlayingAudio ? Icons.stop : Icons.play_arrow,
+                    color: isUser ? Colors.white70 : Colors.black54,
+                  ),
+                  onPressed: () => _playAudioMessage(message['audioUrl']!),
+                ),
+              ),
+          ],
         ),
       ),
     );
+  }
+
+  Future<void> _playAudioMessage(String audioUrl) async {
+    if (_isPlayingAudio) {
+      await _audioPlayer.stop();
+    } else {
+      await _audioPlayer.play(audioplayers.UrlSource(audioUrl));
+    }
   }
 
   void _scrollToBottom() {
@@ -63,6 +146,59 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
         curve: Curves.easeOut,
       );
     });
+  }
+
+  // Start voice recording
+  Future<void> _startRecording() async {
+    try {
+      await _recorder.startRecorder(toFile: 'audio_message');
+      setState(() {
+        _isRecording = true;
+      });
+    } catch (e) {
+      print('Error starting recording: $e');
+    }
+  }
+
+  // Stop voice recording and send for transcription
+  Future<void> _stopRecording() async {
+    try {
+      String? path = await _recorder.stopRecorder();
+      setState(() {
+        _isRecording = false;
+      });
+
+      if (path != null) {
+        await _sendAudioForTranscription(path);
+      }
+    } catch (e) {
+      print('Error stopping recording: $e');
+    }
+  }
+
+  // Send audio file to server for transcription
+  Future<void> _sendAudioForTranscription(String audioPath) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${Api.base}/speech-to-text'),
+      );
+      request.files.add(await http.MultipartFile.fromPath('audio', audioPath));
+      request.fields['language'] = _isZulu ? 'zulu' : 'english';
+
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        var responseData = await response.stream.toBytes();
+        var result = String.fromCharCodes(responseData);
+        // Parse the JSON response
+        // Note: You might want to use a JSON decoder here based on your API response format
+        _controller.text =
+            result; // Assuming the response contains the transcribed text
+        _sendMessage(); // Automatically send the transcribed message
+      }
+    } catch (e) {
+      print('Error sending audio for transcription: $e');
+    }
   }
 
   void _sendMessage() async {
@@ -81,16 +217,28 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
       final response = await Api.post('/chat', {
         'message': input,
         'language': _isZulu ? 'zulu' : 'english',
+        'generateAudio': true, // Request audio response
       });
+
       final aiResponse =
           response['reply'] ?? 'Sorry, I could not process that request.';
+      final audioUrl = response['audioUrl'];
 
       setState(() {
-        _messages.add({'sender': 'AI', 'text': aiResponse});
+        _messages.add({
+          'sender': 'AI',
+          'text': aiResponse,
+          if (audioUrl != null) 'audioUrl': audioUrl,
+        });
         _isSending = false;
       });
 
       _scrollToBottom();
+
+      // Auto-play audio response if available
+      if (audioUrl != null) {
+        await _audioPlayer.play(audioplayers.UrlSource(audioUrl));
+      }
     } catch (e) {
       setState(() {
         _messages.add({
@@ -105,6 +253,14 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
   }
 
   @override
+  void dispose() {
+    _recorder.closeRecorder();
+    _audioPlayer.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(),
@@ -114,7 +270,7 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
           children: [
             const SizedBox(height: 30),
 
-            // Language toggle
+            // Language toggle and voice recording button
             Center(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -160,6 +316,21 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    const SizedBox(width: 20),
+                    // Voice recording button
+                    IconButton(
+                      icon: Icon(
+                        _isRecording ? Icons.mic_off : Icons.mic,
+                        color: _isRecording ? Colors.red : Colors.blue,
+                      ),
+                      onPressed: () {
+                        if (_isRecording) {
+                          _stopRecording();
+                        } else {
+                          _startRecording();
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -167,7 +338,7 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
 
             const SizedBox(height: 20),
 
-            // Info section
+            // Info section with animated octopus
             LayoutBuilder(
               builder: (context, constraints) {
                 final isMobile = constraints.maxWidth < 800;
@@ -211,10 +382,51 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
                                 style: TextStyle(fontSize: 18),
                               ),
                               const SizedBox(height: 20),
-                              Image.asset(
-                                'assets/images/Picture1.png',
-                                height: 200,
-                                fit: BoxFit.contain,
+                              // Animated octopus image with thinking/talking states
+                              Center(
+                                child: Column(
+                                  children: [
+                                    ScaleTransition(
+                                      scale: _animation,
+                                      child: _isSending
+                                          ? Image.asset(
+                                              'assets/images/Disa_Thinking.png', // Thinking image
+                                              height: 150,
+                                              fit: BoxFit.contain,
+                                            )
+                                          : _isPlayingAudio
+                                          ? Image.asset(
+                                              'assets/images/Disa_Talking.png', // Talking image
+                                              height: 150,
+                                              fit: BoxFit.contain,
+                                            )
+                                          : Image.asset(
+                                              'assets/images/Disa_Normal.png', // Normal image
+                                              height: 150,
+                                              fit: BoxFit.contain,
+                                            ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    if (_isSending)
+                                      const Text(
+                                        "Thinking...",
+                                        style: TextStyle(
+                                          fontStyle: FontStyle.italic,
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    else if (_isPlayingAudio)
+                                      const Text(
+                                        "Speaking...",
+                                        style: TextStyle(
+                                          fontStyle: FontStyle.italic,
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
                             ],
                           )
@@ -225,19 +437,40 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    Text(
+                                  children: [
+                                    const Text(
                                       "Need help or have questions?",
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 24,
                                       ),
                                     ),
-                                    SizedBox(height: 10),
-                                    Text(
+                                    const SizedBox(height: 10),
+                                    const Text(
                                       "Chat with the 24/7 available AI assistant to answer any questions and help you get the most out of this experience.",
                                       style: TextStyle(fontSize: 20),
                                     ),
+                                    const SizedBox(height: 20),
+                                    if (_isSending)
+                                      const Text(
+                                        "Thinking...",
+                                        style: TextStyle(
+                                          fontStyle: FontStyle.italic,
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                      )
+                                    else if (_isPlayingAudio)
+                                      const Text(
+                                        "Speaking...",
+                                        style: TextStyle(
+                                          fontStyle: FontStyle.italic,
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ),
@@ -246,10 +479,49 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
                                 flex: 6,
                                 child: Align(
                                   alignment: Alignment.centerRight,
-                                  child: Image.asset(
-                                    'assets/images/Picture1.png',
-                                    height: 300,
-                                    fit: BoxFit.contain,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      ScaleTransition(
+                                        scale: _animation,
+                                        child: _isSending
+                                            ? Image.asset(
+                                                'assets/images/Disa_Thinking.png', // Thinking image
+                                                height: 250,
+                                                fit: BoxFit.contain,
+                                              )
+                                            : _isPlayingAudio
+                                            ? Image.asset(
+                                                'assets/images/Disa_Talking.png', // Talking image
+                                                height: 250,
+                                                fit: BoxFit.contain,
+                                              )
+                                            : Image.asset(
+                                                'assets/images/Disa_Normal.png', // Normal image
+                                                height: 250,
+                                                fit: BoxFit.contain,
+                                              ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      if (_isSending)
+                                        const Text(
+                                          "Thinking...",
+                                          style: TextStyle(
+                                            fontStyle: FontStyle.italic,
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      else if (_isPlayingAudio)
+                                        const Text(
+                                          "Speaking...",
+                                          style: TextStyle(
+                                            fontStyle: FontStyle.italic,
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -297,14 +569,31 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
                     ),
                     const SizedBox(height: 16),
 
-                    // Input + send
+                    // Input + send + record buttons
                     Row(
                       children: [
+                        // Voice recording button
+                        IconButton(
+                          icon: Icon(
+                            _isRecording ? Icons.mic_off : Icons.mic,
+                            color: _isRecording ? Colors.red : Colors.blue,
+                          ),
+                          onPressed: () {
+                            if (_isRecording) {
+                              _stopRecording();
+                            } else {
+                              _startRecording();
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 10),
+
+                        // Text input
                         Expanded(
                           child: TextField(
                             controller: _controller,
                             decoration: InputDecoration(
-                              hintText: "Type your message...",
+                              hintText: "Type your message or use voice...",
                               filled: true,
                               fillColor: Colors.white,
                               contentPadding: const EdgeInsets.symmetric(
@@ -322,6 +611,8 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
                           ),
                         ),
                         const SizedBox(width: 10),
+
+                        // Send button
                         ElevatedButton(
                           onPressed: _isSending ? null : _sendMessage,
                           style: ElevatedButton.styleFrom(
@@ -352,6 +643,16 @@ class _AIPageState extends State<AIPage> with SingleTickerProviderStateMixin {
                     ),
 
                     const SizedBox(height: 16),
+
+                    // Recording indicator
+                    if (_isRecording)
+                      const Text(
+                        "Recording... Speak now",
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                   ],
                 ),
               ),

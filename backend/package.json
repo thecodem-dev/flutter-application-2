@@ -17,6 +17,8 @@
   "author": "EduTech Team",
   "license": "MIT",
   "dependencies": {
+    "@google-cloud/speech": "^6.6.0",
+    "@google-cloud/text-to-speech": "^5.5.0",
     "@supabase/supabase-js": "^2.56.0",
     "axios": "^1.11.0",
     "cors": "^2.8.5",
